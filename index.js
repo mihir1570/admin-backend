@@ -3,6 +3,8 @@ const app = express()
 const cors = require("cors")
 const mongoose = require("mongoose")
 const multer = require("multer")
+const path = require('path');
+
 
 
 require("./db/connection")
@@ -18,7 +20,38 @@ const PORT_NUMBER = process.env.PORT || 4500;
 
 app.use(express.json())
 app.use(cors())
-app.use("/files", express.static("../../admin/frontend/src/components/resumepdf"));
+
+
+
+// PDF
+// const storage = multer.diskStorage({
+//     destination: function (req, file, cb) {
+//         cb(null, '../../admin/frontend/src/components/resumepdf')
+//     },
+//     filename: function (req, file, cb) {
+//         const uniqueSuffix = Date.now()
+//         cb(null, uniqueSuffix + file.originalname)
+//     }
+// });
+// const upload = multer({ storage: storage })
+
+// app.use("/files", express.static("../../admin/frontend/src/components/resumepdf"));
+
+
+
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, './uploads'));
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + '-' + file.originalname);
+    }
+});
+const upload = multer({ storage: storage });
+
+app.use("/files", express.static(path.join(__dirname, './uploads')));
+
 
 
 
@@ -31,23 +64,8 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-// PDF
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, '../../admin/frontend/src/components/resumepdf')
-    },
-    filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now()
-        cb(null, uniqueSuffix + file.originalname)
-    }
-});
-
-const upload = multer({ storage: storage })
-
-
 
 //---------API's-------//
-
 
 // -----------------------------Inquiries-----------------------------
 app.post("/addInquiries", async (req, res) => {
